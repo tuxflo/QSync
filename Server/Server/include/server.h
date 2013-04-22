@@ -24,6 +24,7 @@ signals:
 public slots:
     void send_dir_name();
     void send_files();
+    void quitting_server();
     
 private:
     QTcpServer *_server;

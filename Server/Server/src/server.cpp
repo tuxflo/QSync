@@ -27,7 +27,6 @@ Server::Server(QString directory, quint16 port, QObject *parent) :
 
 Server::~Server()
 {
-    _server->close();
     delete _server;
 }
 
@@ -52,6 +51,7 @@ void Server::send_files()
         stream << (QString)"done";
         _client->write(buf);
         _client->flush();
+        connect(_client, SIGNAL(disconnected()), this, SLOT(quitting_server()));
         _client->disconnectFromHost();
         return;
     }
@@ -79,6 +79,13 @@ void Server::send_files()
         exit(-3);
         break;
     }
+}
+
+void Server::quitting_server()
+{
+    _client->close();
+    _server->close();
+    delete this;
 }
 
 bool Server::_create_checksums()
@@ -127,6 +134,7 @@ bool Server::_send_current_file()
     stream << file.readAll();
 
     //set the filesize
+    stream.device()->seek(0);
     stream << (quint32)(buf.size() - sizeof(quint32));
     _client->write(buf);
     return true;
